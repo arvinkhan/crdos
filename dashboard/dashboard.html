@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CRDAS Dashboard</title>
+</head>
+
+<body>
+
+<h1>Crowd Resilient Data Access System</h1>
+
+<h2>System Stats</h2>
+<div id="stats"></div>
+
+<h2>Request Logs</h2>
+<ul id="logs"></ul>
+
+<script>
+
+async function loadStats(){
+    const res = await fetch("/stats")
+    const data = await res.json()
+
+    document.getElementById("stats").innerHTML =
+    "Total Requests: " + data.totalRequests + "<br>" +
+    "Cache Hits: " + data.hits + "<br>" +
+    "Cache Misses: " + data.misses + "<br>" +
+    "Requests Per Second: " + data.rps
+}
+
+async function loadLogs(){
+    const res = await fetch("/logs")
+    const data = await res.json()
+
+    const list = document.getElementById("logs")
+    list.innerHTML = ""
+
+    data.forEach(log=>{
+        const item = document.createElement("li")
+        item.innerText = log.time + " - " + log.type + " - " + log.endpoint
+        list.appendChild(item)
+    })
+}
+
+setInterval(()=>{
+    loadStats()
+    loadLogs()
+},1000)
+
+</script>
+
+</body>
+</html>
