@@ -34,7 +34,9 @@ app.get("/stats",(req,res)=>{
 app.get("/logs",(req,res)=>{
     res.json(logs)
 })
-
+app.get("/sender",(req,res)=>{
+res.sendFile(path.join(__dirname,"dashboard/sender.html"))
+})
 app.use("/api", async (req,res)=>{
 
     totalRequests++

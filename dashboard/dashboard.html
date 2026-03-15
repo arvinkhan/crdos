@@ -1,52 +1,119 @@
+
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <title>CRDAS Dashboard</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#111827;
+color:white;
+padding:40px;
+}
+
+h1{
+margin-bottom:30px;
+}
+
+.card{
+background:#1f2937;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
+
+.stat{
+font-size:22px;
+margin:10px 0;
+}
+
+ul{
+background:#1f2937;
+padding:20px;
+border-radius:10px;
+list-style:none;
+}
+
+li{
+padding:6px 0;
+border-bottom:1px solid #374151;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<h1>Crowd Resilient Data Access System</h1>
+<div style="margin-bottom:20px;">
+<a href="/dashboard">Dashboard</a> |
+<a href="/sender">Traffic Simulator</a> |
+<a href="/api/products">Test API</a>
+</div>
+
+<h1>CRDAS Monitoring Dashboard</h1>
+
+<div class="card">
 
 <h2>System Stats</h2>
+
 <div id="stats"></div>
 
+</div>
+
 <h2>Request Logs</h2>
+
 <ul id="logs"></ul>
 
 <script>
 
 async function loadStats(){
-    const res = await fetch("/stats")
-    const data = await res.json()
 
-    document.getElementById("stats").innerHTML =
-    "Total Requests: " + data.totalRequests + "<br>" +
-    "Cache Hits: " + data.hits + "<br>" +
-    "Cache Misses: " + data.misses + "<br>" +
-    "Requests Per Second: " + data.rps
+const res = await fetch("/stats")
+const data = await res.json()
+
+document.getElementById("stats").innerHTML=
+
+"<div class='stat'>Total Requests: "+data.totalRequests+"</div>"+
+"<div class='stat'>Cache Hits: "+data.hits+"</div>"+
+"<div class='stat'>Cache Misses: "+data.misses+"</div>"+
+"<div class='stat'>Requests/sec: "+data.rps+"</div>"
+
 }
 
 async function loadLogs(){
-    const res = await fetch("/logs")
-    const data = await res.json()
 
-    const list = document.getElementById("logs")
-    list.innerHTML = ""
+const res = await fetch("/logs")
+const data = await res.json()
 
-    data.forEach(log=>{
-        const item = document.createElement("li")
-        item.innerText = log.time + " - " + log.type + " - " + log.endpoint
-        list.appendChild(item)
-    })
+const list = document.getElementById("logs")
+list.innerHTML=""
+
+data.slice(-10).reverse().forEach(log=>{
+
+const item=document.createElement("li")
+
+item.innerText=log.time+" | "+log.type+" | "+log.endpoint
+
+list.appendChild(item)
+
+})
+
 }
 
 setInterval(()=>{
-    loadStats()
-    loadLogs()
+
+loadStats()
+loadLogs()
+
 },1000)
 
 </script>
 
 </body>
+
 </html>
