@@ -1,78 +1,24 @@
-const express = require("express")
-const axios = require("axios")
-const path = require("path")
-const cache = require("./cache/cache")
+const express = require("express");
+const path = require("path");
 
-const app = express()
+const logger = require("./backend/utils/logger");
+const resultRoutes = require("./backend/routes/resultRoutes");
+const weatherRoutes = require("./backend/routes/weatherRoutes");
 
-let hits = 0
-let misses = 0
-let logs = []
+const app = express();
 
-let totalRequests = 0
-let requestsThisSecond = 0
-let rps = 0
+app.get("/stats", (req, res) => res.json(logger.getStats()));
+app.get("/logs", (req, res) => res.json(logger.getLogs()));
 
-setInterval(()=>{
-    rps = requestsThisSecond
-    requestsThisSecond = 0
-},1000)
+app.use("/api/result", resultRoutes);
+app.use("/api/weather", weatherRoutes);
 
-app.get("/dashboard",(req,res)=>{
-    res.sendFile(path.join(__dirname,"dashboard/dashboard.html"))
-})
+app.use("/result", express.static(path.join(__dirname, "frontend/result-app/dist")));
+app.use("/weather", express.static(path.join(__dirname, "frontend/weather-app/dist")));
+app.use("/admin", express.static(path.join(__dirname, "dashboard")));
 
-app.get("/stats",(req,res)=>{
-    res.json({
-        hits,
-        misses,
-        totalRequests,
-        rps
-    })
-})
+app.get("/", (req,res) => res.redirect("/result"));
 
-app.get("/logs",(req,res)=>{
-    res.json(logs)
-})
-app.get("/sender",(req,res)=>{
-res.sendFile(path.join(__dirname,"dashboard/sender.html"))
-})
-app.use("/api", async (req,res)=>{
-
-    totalRequests++
-    requestsThisSecond++
-
-    const key = req.originalUrl
-
-    const cached = cache.get(key)
-
-    if(cached){
-        hits++
-
-        logs.push({
-            time:new Date().toLocaleTimeString(),
-            type:"HIT",
-            endpoint:key
-        })
-
-        return res.json(cached)
-    }
-
-    misses++
-
-    logs.push({
-        time:new Date().toLocaleTimeString(),
-        type:"MISS",
-        endpoint:key
-    })
-
-    const response = await axios.get("http://localhost:4000"+req.originalUrl)
-
-    cache.set(key,response.data,60000)
-
-    res.json(response.data)
-})
-
-app.listen(3000,()=>{
-    console.log("CRDAS running on port 3000")
-})
+app.listen(3000, () => {
+    console.log("CRDAS Central API Gateway running on port 3000");
+});
